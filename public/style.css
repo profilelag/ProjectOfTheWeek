@@ -42,10 +42,10 @@ body {
     background-color: rgba(0, 0, 0, 0.4);
     padding: 3%;
     border-radius: 1rem;
-    border-width: 0.02rem;
-    border-color: #222222;
+    border-width: 0.01rem;
+    border-color: var(--light-mode-font-color);
     border-style: solid;
-    box-shadow: 0 0 0.5rem var(--dark-mode-bg-color);
+    box-shadow: 0 0 0.5rem var(--light-mode-font-color);
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -67,4 +67,20 @@ body {
 
 #timer {
     font-size: 1rem;
+}
+
+#showcase {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.project {
+    border: black solid 2px;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 0 0.5rem 1rem 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #eeeeee;
 }

@@ -10,3 +10,9 @@ setInterval(() => {
     const seconds = timeLeft%60;
     $("#timer")[0].innerHTML = `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
 })
+
+axios.get("/showcase").then((response) => {
+    const showcase = response.data;
+    const showcaseHTML = showcase.map((item) => `<div class="project"><p class="author">${item.author}</p><a href="${item.github}" target="_blank">Github Project</a></div>`);
+    $("#showcase")[0].innerHTML = showcaseHTML.join("");
+})
