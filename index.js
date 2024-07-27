@@ -1,20 +1,25 @@
-import express from "express";
+const express = require("express");
+import { Database } from "bun:sqlite";
 const app = express();
 
-interface Project {
-    author: string;
-    github: string;
-}
+const db = new Database("sqlite3.db");
 
 var currentPrompt = "Build a quiz app";
-var showcase: Project[] = [
+var showcase = [
     {author: "John", github: "https://github.com/profilelag/ProjectOfTheWeek"},
     {author: "Amy", github: "https://github.com/profilelag/ProjectOfTheWeek"},
     {author: "Mikey", github: "https://github.com/profilelag/ProjectOfTheWeek"},
     {author: "Matt", github: "https://github.com/profilelag/ProjectOfTheWeek"},
     {author: "Jerry", github: "https://github.com/profilelag/ProjectOfTheWeek"}
 ];
-app.use((req, res, next) => {console.log(`${req.method} ${req.path}`); next()});
+showcase = db.prepare("SELECT user,name FROM submission WHERE approved = true").all().map(row => {
+  const username = db.prepare("SELECT name FROM user WHERE id = ?").get(row.user).name
+  return {
+    author: username,
+    github: `https://github.com/${username}/${row.name}`
+  }
+})
+// app.use((req, res, next) => {console.log(`${req.method} ${req.path}`); next()});
 app.use(express.static("public"));
 app.get("/prompt", (req, res) => res.end(currentPrompt));
 app.get("/showcase", (req, res) => {
