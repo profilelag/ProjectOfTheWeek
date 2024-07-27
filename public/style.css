@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @font-face {
     font-family: 'Lobster';
     font-style: normal;
@@ -15,8 +16,12 @@
 }
 
 body {
+    font-family: monospace;
+    
     background-color: var(--weekly-color);
     color: var(--light-mode-font-color);
+
+    /* TODO: Add a dark mode toggle button */
     /* background-color: var(--dark-mode-bg-color);
     color: var(--weekly-color); */
 }
@@ -32,6 +37,7 @@ body {
 }
 
 #header {
+    color: #eeeeee;
     background-color: rgba(0, 0, 0, 0.4);
     margin: 0 3%;
     padding: 3%;
@@ -40,4 +46,25 @@ body {
     border-color: #222222;
     border-style: solid;
     box-shadow: 0 0 0.5rem var(--dark-mode-bg-color);
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-direction: column;
+}
+#header * {
+    margin: 0.2rem 0 1.2rem 0;
+}
+
+#idea {
+    font-size: 2rem;
+    font-family: "Roboto Mono";
+}
+
+#desc {
+    font-size: 1.5rem;
+}
+
+#timer {
+    font-size: 1rem;
 }
