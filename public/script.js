@@ -12,7 +12,13 @@ setInterval(() => {
 })
 
 axios.get("/showcase").then((response) => {
-    const showcase = response.data;
-    const showcaseHTML = showcase.map((item) => `<div class="project"><p class="author">${item.author}</p><a href="${item.github}" target="_blank">Github Project</a></div>`);
+    const showcaseHTML = response.data.map((item) => `<div class="project"><p class="author">${item.author}</p><a href="${item.github}" target="_blank">Github Project</a></div>`);
     $("#showcase")[0].innerHTML = showcaseHTML.join("");
+})
+
+$("#submit-button")[0].addEventListener("click", () => {
+    if(document.cookie.includes("token="))
+        return window.location.href="/submit";
+    
+    window.location.href="/login";
 })
