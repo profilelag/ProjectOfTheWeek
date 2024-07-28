@@ -3,3 +3,4 @@ bun.lockb
 .env
 .idea
 sqlite3.db
+package-lock.json
