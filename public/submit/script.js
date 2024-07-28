@@ -20,8 +20,10 @@ axios.get("https://api.github.com/user", {
             "Authorization": `Bearer ${token}`
         }
     }).then(repos => {
-        repos.data.filter(x => x.owner.login == res.data.login).forEach(repo => {
-            $("#projects")[0].innerHTML += `<div class="project">${repo.full_name}</div>`
+        repos = repos.data.filter(x => x.owner.login == res.data.login)
+        if(!repos.length) return $("#projects")[0].innerHTML = "No projects"
+        repos.forEach(repo => {
+            $("#projects")[0].innerHTML += `<div class="project">${repo.full_name}<a href="/submit?repo=${repo.full_name}"><button>Submit</button></a></div>`
         })
     })
 }).catch(err => {

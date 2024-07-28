@@ -9,6 +9,17 @@ var currentPrompt = "Build a quiz app";
 
 app.get("/submit", (req, res, next) => {
 	if(!req.query.code && !req.headers.cookie?.includes("token=")) return res.redirect("/");
+	if(req.query.repo) {
+		const token = req.headers.cookie.split("token=")[1];
+		fetch(`https://api.github.com/user`, {headers: {"Authorization": `Bearer ${token}`}}).then(res => res.json()).then(user => {
+			if(!user) return res.redirect("/");
+			fetch(`https://api.github.com/repos/${req.query.repo}`, {headers: {"Authorization": `Bearer ${token}`}}).then(res => res.json()).then(repo => {
+				if(!repo || repo.owner.login != user.login) return res.redirect("/");
+				db.exec("INSERT INTO submission (name, date) VALUES (?)", [repo.full_name, (new Date()).toUTCString()]);
+				return res.end();
+			})
+		})
+	}
 	next();
 })
 app.use(express.static("public"));
