@@ -1,4 +1,7 @@
 axios.get("/prompt").then((response) => $("#idea")[0].innerHTML = response.data);
+const searchParams = new URLSearchParams(window.location.search);
+if(searchParams.has("error")) $("#desc")[0].innerHTML = "An error occurred. Please try again later.";
+if(searchParams.has("message")) $("#desc")[0].innerHTML = searchParams.get("message");
 const seconds = Math.floor((new Date().getTime())/1000)
 const endDate = 259200+(Math.floor((seconds-259200)/604800)+1)*604800;
 const updateTimer = () => {

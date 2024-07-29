@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 app.post("/submit", async (req, res) => {
     if (!req.headers.cookie?.includes("token=")) {
         log.info("No token found");
-        return res.sendStatus(403).end({ error: "No token found" });
+        return res.sendStatus(403).end(JSON.stringify({ error: "No token found" }));
     }
     const token = req.headers.cookie.split("token=")[1];
     const user = await fetch(`https://api.github.com/user`, {
@@ -35,57 +35,35 @@ app.post("/submit", async (req, res) => {
     }).then((res) => res.json());
 	if (!user) {
 		log.info("Invalid token");
-		return res.sendStatus(403).end({ error: "Invalid token" });
-	}
+		return res.sendStatus(403).end(JSON.stringify({ error: "Invalid token" }));
+	}console.log("asdf")
 	if(!req.query.repo) {
 		log.info("No repo found");
-		return res.sendStatus(400).end({ error: "No repo found" });
+		return res.sendStatus(400).end(JSON.stringify({ error: "No repo found" }));
 	}
 	const repo = await fetch(`https://api.github.com/repos/${req.query.repo}`, {
 		headers: { Authorization: `Bearer ${token}` },
 	}).then((res) => res.json());
 	if (!repo || repo.owner.login != user.login) {
 		log.info("Invalid repo");
-		return res.sendStatus(403).end({ error: "Invalid repo" });
+		return res.sendStatus(403).end(JSON.stringify({ error: "Invalid repo" }));
 	}
 	try {
 		db.prepare(
-			"INSERT INTO submission (name, date) VALUES (?, ?)",
-			[repo.full_name, new Date().toUTCString()]
+			"INSERT INTO submission (name, date, approved) VALUES (?, ?, ?)",
+			[repo.full_name, new Date().toUTCString(), true]
 		).run();
-	} catch {
-		return res.sendStatus(500).end({ error: "Error submitting" });
+        log.info("Submission added: " + repo.full_name);
+        return res.sendStatus(200).end(JSON.stringify({ message: "Submission added" }));
+	} catch(err) {
+        console.log(err)
+		return res.sendStatus(500).end(JSON.stringify({ error: err }));
 	}
 });
 
 app.get("/submit", (req, res, next) => {
     if (!req.query.code && !req.headers.cookie?.includes("token="))
         return res.redirect("/");
-
-    if (req.query.repo) {
-        const token = req.headers.cookie.split("token=")[1];
-        fetch(`https://api.github.com/user`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => res.json())
-            .then((user) => {
-                if (!user) return res.redirect("/");
-                fetch(`https://api.github.com/repos/${req.query.repo}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                })
-                    .then((res) => res.json())
-                    .then((repo) => {
-                        if (!repo || repo.owner.login != user.login)
-                            return res.redirect("/");
-                        db.prepare(
-                            "INSERT INTO submission (name, date) VALUES (?, ?)",
-                            [repo.full_name, new Date().toUTCString()]
-                        ).run();
-                    });
-            });
-        res.redirect("/");
-        return res.end();
-    }
     next();
 });
 app.use(express.static("public"));
