@@ -1,6 +1,6 @@
+package-lock.json
 node_modules
 bun.lockb
+
 .env
-.idea
 sqlite3.db
-package-lock.json

@@ -2,10 +2,12 @@
   "dependencies": {
     "bun": "^1.1.21",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2"
   },
   "scripts": {
-    "start": "bun index.js",
-    "dev": "bun --watch index.js"
+    "start": "bun index.js | pino-pretty",
+    "dev": "bun --watch index.js | pino-pretty"
   }
 }

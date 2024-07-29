@@ -1,11 +1,39 @@
-require("dotenv").config();
-
 import { Database } from "bun:sqlite";
 const express = require("express");
+const fs = require("fs");
+const log = require("pino")();
+
+require("dotenv").config();
 const app = express();
 
+log.info("Starting Project of the Day");
+
+if(!fs.existsSync("sqlite3.db")) {
+	log.warn("Database not found, creating a new one");
+	fs.writeFileSync("sqlite3.db", "");
+	const db = new Database("sqlite3.db");
+	db.prepare(fs.readFileSync("setup.sql").toString()).run();
+	log.info("Database created");
+}
+
 const db = new Database("sqlite3.db");
-var currentPrompt = "Build a quiz app";
+log.info("Database loaded");
+var currentPrompt = "Build a quiz app"; //TODO: Add a way to change and queue this
+app.use((req, res, next) => {
+	log.info(`${req.method} ${req.url}`);
+	next();
+})
+
+app.post("/submit", async (req, res) => {
+	if(!req.headers.cookie?.includes("token=")) {
+		log.info("No token found");
+		return res.sendStatus(403).end({error: "No token found"});
+	}
+	const token = req.headers.cookie.split("token=")[1];
+	await fetch(`https://api.github.com/user`, {
+		headers: { Authorization: `Bearer ${token}` }
+	})
+})
 
 app.get("/submit", (req, res, next) => {
     if (!req.query.code && !req.headers.cookie?.includes("token="))
@@ -27,8 +55,8 @@ app.get("/submit", (req, res, next) => {
                         if (!repo || repo.owner.login != user.login)
                             return res.redirect("/");
                         db.prepare(
-                            "INSERT INTO submission (name, date, approved) VALUES (?, ?, ?)",
-                            [repo.full_name, new Date().toUTCString(), true]
+                            "INSERT INTO submission (name, date) VALUES (?, ?)",
+                            [repo.full_name, new Date().toUTCString()]
                         ).run();
                     });
             });
@@ -82,4 +110,4 @@ app.get("/genToken", (req, res) => {
         });
 });
 
-app.listen(8080, () => console.log("Project running at http://localhost:8080"));
+app.listen(process.env["PORT"], () => log.info(`Available at http://localhost:${process.env["PORT"]}`));
