@@ -8,37 +8,60 @@ const app = express();
 
 log.info("Starting Project of the Day");
 
-if(!fs.existsSync("sqlite3.db")) {
-	log.warn("Database not found, creating a new one");
-	fs.writeFileSync("sqlite3.db", "");
-	const db = new Database("sqlite3.db");
-	db.prepare(fs.readFileSync("setup.sql").toString()).run();
-	log.info("Database created");
+if (!fs.existsSync("sqlite3.db")) {
+    log.warn("Database not found, creating a new one");
+    fs.writeFileSync("sqlite3.db", "");
+    const db = new Database("sqlite3.db");
+    db.prepare(fs.readFileSync("setup.sql").toString()).run();
+    log.info("Database created");
 }
 
 const db = new Database("sqlite3.db");
 log.info("Database loaded");
 var currentPrompt = "Build a quiz app"; //TODO: Add a way to change and queue this
 app.use((req, res, next) => {
-	log.info(`${req.method} ${req.url}`);
-	next();
-})
+    log.info(`${req.method} ${req.url}`);
+    next();
+});
 
 app.post("/submit", async (req, res) => {
-	if(!req.headers.cookie?.includes("token=")) {
-		log.info("No token found");
-		return res.sendStatus(403).end({error: "No token found"});
+    if (!req.headers.cookie?.includes("token=")) {
+        log.info("No token found");
+        return res.sendStatus(403).end({ error: "No token found" });
+    }
+    const token = req.headers.cookie.split("token=")[1];
+    const user = await fetch(`https://api.github.com/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => res.json());
+	if (!user) {
+		log.info("Invalid token");
+		return res.sendStatus(403).end({ error: "Invalid token" });
 	}
-	const token = req.headers.cookie.split("token=")[1];
-	await fetch(`https://api.github.com/user`, {
-		headers: { Authorization: `Bearer ${token}` }
-	})
-})
+	if(!req.query.repo) {
+		log.info("No repo found");
+		return res.sendStatus(400).end({ error: "No repo found" });
+	}
+	const repo = await fetch(`https://api.github.com/repos/${req.query.repo}`, {
+		headers: { Authorization: `Bearer ${token}` },
+	}).then((res) => res.json());
+	if (!repo || repo.owner.login != user.login) {
+		log.info("Invalid repo");
+		return res.sendStatus(403).end({ error: "Invalid repo" });
+	}
+	try {
+		db.prepare(
+			"INSERT INTO submission (name, date) VALUES (?, ?)",
+			[repo.full_name, new Date().toUTCString()]
+		).run();
+	} catch {
+		return res.sendStatus(500).end({ error: "Error submitting" });
+	}
+});
 
 app.get("/submit", (req, res, next) => {
     if (!req.query.code && !req.headers.cookie?.includes("token="))
         return res.redirect("/");
-	
+
     if (req.query.repo) {
         const token = req.headers.cookie.split("token=")[1];
         fetch(`https://api.github.com/user`, {
@@ -110,4 +133,6 @@ app.get("/genToken", (req, res) => {
         });
 });
 
-app.listen(process.env["PORT"], () => log.info(`Available at http://localhost:${process.env["PORT"]}`));
+app.listen(process.env["PORT"], () =>
+    log.info(`Available at http://localhost:${process.env["PORT"]}`)
+);
